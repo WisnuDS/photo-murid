@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">AplikasiPhotoMurid</string>
+    <string name="ambil_photo">AMBIL PHOTO</string>
+    <string name="edit_data_siswa">EDIT DATA SISWA</string>
+    <string name="title_activity_data_siswa">DataSiswa</string>
+    <string name="refresh">Refresh</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="nam">NAM</string>
+    <string name="se">SE</string>
+    <string name="bahasa">BAHASA</string>
+    <string name="kognitif">KOGNITIF</string>
+    <string name="motorik_kasar">MOTORIK KASAR</string>
+    <string name="seni">SENI</string>
+    <string name="motorik_halus">MOTORIK HALUS</string>
+</resources>
