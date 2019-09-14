@@ -23,7 +23,8 @@ import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
-public class Photo extends AppCompatActivity {
+public class
+Photo extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
     static String str_Camera_Photo_ImagePath = "";
     private static File f;
@@ -37,6 +38,7 @@ public class Photo extends AppCompatActivity {
     public static GridView gridview;
     public static ImageView imageView;
     String name, category;
+    String buf;
 
 
 
