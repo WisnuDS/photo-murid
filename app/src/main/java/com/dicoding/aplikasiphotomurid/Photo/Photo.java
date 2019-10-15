@@ -1,46 +1,41 @@
 package com.dicoding.aplikasiphotomurid.Photo;
 
 
-
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
 import android.provider.MediaStore;
-import android.support.v4.content.FileProvider;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.GridView;
 import android.widget.ImageView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+
 import com.dicoding.aplikasiphotomurid.R;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
 public class
 Photo extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
-    static String str_Camera_Photo_ImagePath = "";
-    private static File f;
-    private static int Take_Photo = 2;
-    private static String str_randomnumber = "";
-    static String str_Camera_Photo_ImageName = "";
     public static String str_SaveFolderName;
-    private static File wallpaperDirectory;
-    Bitmap bitmap;
-    int storeposition = 0;
-    public static GridView gridview;
+    @SuppressLint("StaticFieldLeak")
     public static ImageView imageView;
+    static String str_Camera_Photo_ImagePath = "";
+    static String str_Camera_Photo_ImageName = "";
+    private static int Take_Photo = 2;
+
     String name, category;
-    String buf;
-
-
+    String currentPhotoPath;
+    private Intent takePictureIntent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,7 +43,7 @@ Photo extends AppCompatActivity {
         setContentView(R.layout.activity_photo);
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
-        this.imageView = findViewById(R.id.img_photo);
+        imageView = findViewById(R.id.img_photo);
         Button photoButton = findViewById(R.id.btn_photo);
         name = getIntent().getStringExtra("EXTRA_NAME");
         category = getIntent().getStringExtra("EXTRA_CATEGORY");
@@ -56,134 +51,66 @@ Photo extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                str_SaveFolderName = Environment
-                        .getExternalStorageDirectory()
-                        .getAbsolutePath()
-                        + "/PhotoTK/"+name+"/"+category+"/";
-                str_randomnumber = String.valueOf(nextSessionId());
-                wallpaperDirectory = new File(str_SaveFolderName);
-                if (!wallpaperDirectory.exists())
-                    wallpaperDirectory.mkdirs();
-                str_Camera_Photo_ImageName = str_randomnumber
-                        + ".jpg";
-                str_Camera_Photo_ImagePath = str_SaveFolderName
-                        + "/" + str_randomnumber + ".jpg";
-                System.err.println(" str_Camera_Photo_ImagePath  "
-                        + str_Camera_Photo_ImagePath);
-                f = new File(str_Camera_Photo_ImagePath);
-                startActivityForResult(new Intent(
-                                MediaStore.ACTION_IMAGE_CAPTURE).putExtra(
-                        MediaStore.EXTRA_OUTPUT, Uri.fromFile(f)),
-                        Take_Photo);
-
-                System.err.println("f  " + f);
+                takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivity(takePictureIntent);
+                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(takePictureIntent, Take_Photo);
+                }
             }
         });
     }
 
-
-    // used to create randon numbers
     public String nextSessionId() {
         SecureRandom random = new SecureRandom();
         return new BigInteger(130, random).toString(32);
     }
 
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == Take_Photo) {
-            String filePath = null;
+            Bundle extras = data.getExtras();
+            assert extras != null;
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            dispatchTakePictureIntent();
+            imageView.setImageBitmap(imageBitmap);
+        }
+    }
 
-            filePath = str_Camera_Photo_ImagePath;
-            if (filePath != null) {
-                Bitmap faceView = ( new_decode(new File(
-                        filePath))); // ========================> good
-                // lines
+    private File createImageFile() throws IOException {
+        str_SaveFolderName = Environment
+                .getExternalStorageDirectory()
+                .getAbsolutePath()
+                + "/PhotoTK/" + name + "/" + category + "/";
+        String str_randomnumber = String.valueOf(nextSessionId());
+        File wallpaperDirectory = new File(str_SaveFolderName);
+        if (!wallpaperDirectory.exists())
+            wallpaperDirectory.mkdirs();
+        str_Camera_Photo_ImageName = str_randomnumber + ".jpg";
+        str_Camera_Photo_ImagePath = str_SaveFolderName + "/" + str_randomnumber + ".jpg";
+        File storageDir = getExternalFilesDir(str_SaveFolderName);
+        File image = File.createTempFile(str_Camera_Photo_ImageName, ".jpg", storageDir);
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
 
-
-
-                imageView.setImageBitmap(faceView);
-
-            } else {
-                bitmap = null;
+    private void dispatchTakePictureIntent() {
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ignored) {
+            }
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.dicoding.aplikasiphotomurid.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, CAMERA_REQUEST);
             }
         }
     }
 
-    public static Bitmap new_decode(File f) {
 
-        // decode image size
-
-        BitmapFactory.Options o = new BitmapFactory.Options();
-        o.inJustDecodeBounds = true;
-        o.inDither = false; // Disable Dithering mode
-
-        o.inPurgeable = true; // Tell to gc that whether it needs free memory,
-        // the Bitmap can be cleared
-
-        o.inInputShareable = true; // Which kind of reference will be used to
-        // recover the Bitmap data after being
-        // clear, when it will be used in the future
-        try {
-            BitmapFactory.decodeStream(new FileInputStream(f), null, o);
-        } catch (FileNotFoundException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-
-        // Find the correct scale value. It should be the power of 2.
-        final int REQUIRED_SIZE = 300;
-        int width_tmp = o.outWidth, height_tmp = o.outHeight;
-        int scale = 1;
-        while (true) {
-            if (width_tmp / 1.5 < REQUIRED_SIZE && height_tmp / 1.5 < REQUIRED_SIZE)
-                break;
-            width_tmp /= 1.5;
-            height_tmp /= 1.5;
-            scale *= 1.5;
-        }
-
-        // decode with inSampleSize
-        BitmapFactory.Options o2 = new BitmapFactory.Options();
-        // o2.inSampleSize=scale;
-        o.inDither = false; // Disable Dithering mode
-
-        o.inPurgeable = true; // Tell to gc that whether it needs free memory,
-        // the Bitmap can be cleared
-
-        o.inInputShareable = true; // Which kind of reference will be used to
-        // recover the Bitmap data after being
-        // clear, when it will be used in the future
-        // return BitmapFactory.decodeStream(new FileInputStream(f), null, o2);
-        try {
-
-//          return BitmapFactory.decodeStream(new FileInputStream(f), null,
-//                  null);
-            Bitmap bitmap= BitmapFactory.decodeStream(new FileInputStream(f), null, null);
-            System.out.println(" IW " + width_tmp);
-            System.out.println("IHH " + height_tmp);
-            int iW = width_tmp;
-            int iH = height_tmp;
-
-            return Bitmap.createScaledBitmap(bitmap, iW, iH, true);
-
-        } catch (OutOfMemoryError e) {
-            // TODO: handle exception
-            e.printStackTrace();
-            // clearCache();
-
-            // System.out.println("bitmap creating success");
-            System.gc();
-            return null;
-            // System.runFinalization();
-            // Runtime.getRuntime().gc();
-            // System.gc();
-            // decodeFile(f);
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;
-        }
-
+    @SuppressLint("Registered")
+    public class GenericFileProvider extends FileProvider {
     }
-    public class GenericFileProvider extends FileProvider{}
 }

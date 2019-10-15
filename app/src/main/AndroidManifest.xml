@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dicoding.aplikasiphotomurid">
-    <uses-feature android:name="android.hardware.Camera"
-                    android:required="true"/>
+    <uses-feature android:name="android.hardware.Camera" android:required="true"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
 
@@ -30,8 +29,8 @@
             </intent-filter>
         </activity>
         <provider
-            android:name="android.support.v4.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.dicoding.aplikasiphotomurid.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
