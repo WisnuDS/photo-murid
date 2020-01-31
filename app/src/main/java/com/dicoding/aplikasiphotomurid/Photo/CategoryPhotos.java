@@ -2,6 +2,8 @@ package com.dicoding.aplikasiphotomurid.Photo;
 
 import android.content.Intent;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -9,7 +11,7 @@ import android.widget.Button;
 import com.dicoding.aplikasiphotomurid.R;
 
 public class CategoryPhotos extends AppCompatActivity implements View.OnClickListener {
-    Button btnNam,btnSe,btnBahasa,btnKognitif,btnMotorikHls,btnMotorikKsr,btnSeni;
+    CardView btnNam,btnSe,btnBahasa,btnKognitif,btnMotorikHls,btnMotorikKsr,btnSeni;
     String type;
     private static final String CATEGORY_NAM = "NAM";
     private static final String CATEGORY_SE = "SE";

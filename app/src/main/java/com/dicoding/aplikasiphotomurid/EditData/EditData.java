@@ -1,6 +1,8 @@
 package com.dicoding.aplikasiphotomurid.EditData;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +19,8 @@ public class EditData extends AppCompatActivity {
     int idData;
     String name;
     Boolean isUpdate = false;
+    Intent intent = new Intent();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,6 +28,8 @@ public class EditData extends AppCompatActivity {
         idData = getIntent().getIntExtra("EXTRA_ID_DATA_SISWA",0);
         name = getIntent().getStringExtra("EXTRA_NAMA_DATA_SISWA");
         edtName = findViewById(R.id.edt_name);
+        intent.putExtra("SUCCES",false);
+        setResult(2,intent);
         if (name!=null){
             edtName.setText(name);
             isUpdate = true;
@@ -48,6 +54,9 @@ public class EditData extends AppCompatActivity {
                     "Please input name or address ...", Toast.LENGTH_SHORT).show();
         } else {
             SQLite.insert(edtName.getText().toString().trim());
+            intent.putExtra("SUCCES",true);
+            intent.putExtra("ADD",true);
+            setResult(1,intent);
             finish();
         }
     }
@@ -58,6 +67,9 @@ public class EditData extends AppCompatActivity {
                     "Please input name or address ...", Toast.LENGTH_SHORT).show();
         } else {
             SQLite.update(idData, edtName.getText().toString().trim());
+            intent.putExtra("SUCCES",true);
+            intent.putExtra("UP",true);
+            setResult(2,intent);
             finish();
         }
     }

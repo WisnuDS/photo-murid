@@ -3,7 +3,6 @@ package com.dicoding.aplikasiphotomurid.Photo;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -12,84 +11,98 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
-
+import com.bumptech.glide.Glide;
 import com.dicoding.aplikasiphotomurid.R;
-
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class
-Photo extends AppCompatActivity {
-    private static final int CAMERA_REQUEST = 1888;
-    public static String str_SaveFolderName;
+public class Photo extends AppCompatActivity {
+    private static final int CAMERA_REQUEST = 1;
     @SuppressLint("StaticFieldLeak")
     public static ImageView imageView;
-    static String str_Camera_Photo_ImagePath = "";
-    static String str_Camera_Photo_ImageName = "";
-    private static int Take_Photo = 2;
-
-    String name, category;
-    String currentPhotoPath;
+    Button photoButton, saveButton;
+    Intent intent = new Intent();
+    private Uri photoURI;
+    private String name, category;
     private Intent takePictureIntent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        intent.putExtra("SAVED", false);
+        setResult(3,intent);
         setContentView(R.layout.activity_photo);
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
         imageView = findViewById(R.id.img_photo);
-        Button photoButton = findViewById(R.id.btn_photo);
+        photoButton = findViewById(R.id.btn_photo);
+        saveButton = findViewById(R.id.btn_save);
         name = getIntent().getStringExtra("EXTRA_NAME");
         category = getIntent().getStringExtra("EXTRA_CATEGORY");
+        if(savedInstanceState != null){
+            String uri = savedInstanceState.getString("URI");
+            if(uri != null){
+                photoURI = Uri.parse(uri);
+                Glide.with(this)
+                        .load(photoURI)
+                        .centerCrop()
+                        .into(imageView);
+                intent.putExtra("SAVED", true);
+                setResult(3,intent);
+                photoButton.setVisibility(View.GONE);
+                saveButton.setVisibility(View.VISIBLE);
+            }
+        }
         photoButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivity(takePictureIntent);
-                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivityForResult(takePictureIntent, Take_Photo);
-                }
+                dispatchTakePictureIntent();
+            }
+        });
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
             }
         });
     }
 
-    public String nextSessionId() {
-        SecureRandom random = new SecureRandom();
-        return new BigInteger(130, random).toString(32);
-    }
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == Take_Photo) {
-            Bundle extras = data.getExtras();
-            assert extras != null;
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            dispatchTakePictureIntent();
-            imageView.setImageBitmap(imageBitmap);
+        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK) {
+            photoButton.setVisibility(View.GONE);
+            saveButton.setVisibility(View.VISIBLE);
+            Glide.with(this)
+                    .load(photoURI)
+                    .centerCrop()
+                    .into(imageView);
+            intent.putExtra("SAVED", true);
+            setResult(3,intent);
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("URI", String.valueOf(photoURI));
+    }
+
     private File createImageFile() throws IOException {
-        str_SaveFolderName = Environment
-                .getExternalStorageDirectory()
-                .getAbsolutePath()
-                + "/PhotoTK/" + name + "/" + category + "/";
-        String str_randomnumber = String.valueOf(nextSessionId());
-        File wallpaperDirectory = new File(str_SaveFolderName);
-        if (!wallpaperDirectory.exists())
-            wallpaperDirectory.mkdirs();
-        str_Camera_Photo_ImageName = str_randomnumber + ".jpg";
-        str_Camera_Photo_ImagePath = str_SaveFolderName + "/" + str_randomnumber + ".jpg";
-        File storageDir = getExternalFilesDir(str_SaveFolderName);
-        File image = File.createTempFile(str_Camera_Photo_ImageName, ".jpg", storageDir);
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
+        @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES+"/"+name+"/"+category);
+
+        // Save a file: path for use with ACTION_VIEW intents
+        return File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
     }
 
     private void dispatchTakePictureIntent() {
@@ -100,7 +113,7 @@ Photo extends AppCompatActivity {
             } catch (IOException ignored) {
             }
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
+                photoURI = FileProvider.getUriForFile(this,
                         "com.dicoding.aplikasiphotomurid.fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
@@ -108,7 +121,6 @@ Photo extends AppCompatActivity {
             }
         }
     }
-
 
     @SuppressLint("Registered")
     public class GenericFileProvider extends FileProvider {

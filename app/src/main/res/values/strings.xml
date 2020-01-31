@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AplikasiPhotoMurid</string>
+    <string name="app_name">Aplikasi Photo Murid</string>
     <string name="ambil_photo">AMBIL PHOTO</string>
     <string name="edit_data_siswa">EDIT DATA SISWA</string>
     <string name="title_activity_data_siswa">DataSiswa</string>
